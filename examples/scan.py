@@ -72,6 +72,7 @@ def main():
         node.start()
     finally:
         node.stop()
+        node._unassign()
 
 
 if __name__ == "__main__":
