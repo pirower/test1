@@ -47,6 +47,7 @@ class Node:
         self._responses = collections.deque()
         self._event_cond = threading.Condition()
         self._events = collections.deque()
+        self._main_thread = None
 
         self._datas = queue.Queue()
 
@@ -129,9 +130,11 @@ class Node:
                 "advanced_options" : data[2][3],
                 "advanced_options2" : data[2][4],
                 "max_sensrcore_channels": data[2][5],
-                "advanced_options3" : data[2][6],
-                "advanced_options4" : data[2][7],
             }
+            if len(data[2])>=7:
+                result["advanced_options3"] = data[2][6]
+            if len(data[2])>=8:
+                result["advanced_options4"] = data[2][7]
             return result
         else:
             _logger.debug(
@@ -205,7 +208,8 @@ class Node:
                 pass
 
     def start(self):
-        self._main()
+        self._main_thread = threading.Thread(target=self._main, name="_main")
+        self._main_thread.start()
 
     def stop(self):
         if self._running:
@@ -213,3 +217,5 @@ class Node:
             self._running = False
             self.ant.stop()
             self._worker_thread.join()
+            self._main_thread.join()
+            self._main_thread = None
